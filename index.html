@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King of the Diamonds</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alice">
+   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Playfair+Display">
+
+    <style>
+        body {
+           font-family: 'Alice', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1a1a1a; /* Dark background */
+            color: #ddd; /* Light text */
+            margin: 0;
+            background-image: url('https://i.imgur.com/fM65rKj.jpg');
+            background-size: cover;
+            background-blend-mode: multiply;
+              overflow-x: hidden; /* Hide horizontal scroll */
+
+        }
+        .container {
+          text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.6); /* Dark semi-transparent background */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            max-width: 700px;
+            width: 95%;
+           backdrop-filter: blur(5px); /* Apply a blur */
+
+        }
+        h1 {
+            font-family: 'Playfair Display', serif;
+          text-shadow: 1px 1px 2px #000; /* Add text shadow */
+             margin-bottom: 20px;
+             color:#fff
+        }
+           h2 {
+            font-family: 'Alice', serif;
+             text-shadow: 1px 1px 2px #000;
+              margin-bottom: 20px;
+             color:#fff
+           }
+            h2 {
+            margin-top: 20px
+          }
+        #playerList {
+            list-style: none;
+            padding: 0;
+        }
+
+        #playerList li {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        #playerList li input {
+             flex-grow: 1;
+             margin-right: 5px;
+             padding: 8px;
+             background-color: #333;
+             color: #fff;
+            border: none;
+            border-radius: 4px;
+
+        }
+        #addPlayerBtn, #startGameBtn, #nextRoundBtn {
+              background-color: #555;
+            color: #fff;
+            padding: 10px 15px;
+             border: none;
+            border-radius: 5px;
+            cursor: pointer;
+             margin-top: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            transition: background-color 0.3s;
+          border: 2px solid #888;
+
+        }
+         #addPlayerBtn:hover, #startGameBtn:hover, #nextRoundBtn:hover {
+             background-color: #777;
+             border-color: #aaa;
+        }
+
+
+        #numberGrid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+           width: 100%;
+           transition: opacity 0.5s; /* Add fade effect */
+
+        }
+    #numberGrid.hidden {
+      opacity: 0;
+    }
+        .number-cell {
+          background: rgba(255, 255, 255, 0.05); /* Slightly transparent background */
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+           text-align: center;
+            border: 1px solid #444;
+           color: #ddd;
+
+        }
+        .number-cell.selected {
+             background: #4CAF50;
+            color: #fff;
+        }
+        .number-cell:hover {
+             background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+
+        }
+         #playerDisplay {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+         .player-info {
+             padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+             background-color: rgba(255, 255, 255, 0.05);
+           text-align: left;
+        }
+        .player-info.eliminated {
+             background-color: #ff4444; /* Dark red for eliminated player */
+            border-color: #ff0000;
+            color: #222
+        }
+        .player-info span {
+             font-weight: bold;
+        }
+        #gameOverScreen {
+          text-align: center;
+          margin-top: 20px;
+        }
+         #calculationDisplay {
+           margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+           background-color: rgba(0,0,0,0.2);
+           text-shadow: 1px 1px 2px #000;
+           transition: opacity 0.5s; /* Add fade effect */
+
+        }
+
+         #calculationDisplay div {
+           margin-bottom: 5px;
+         }
+        #roundFeedback {
+          margin-top: 20px;
+             text-shadow: 1px 1px 2px #000;
+           font-size: 1.1rem;
+
+        }
+        #roundTimer {
+          font-size: 20px;
+           margin-top: 20px;
+             text-shadow: 1px 1px 2px #000;
+
+        }
+        #playerPrompt {
+             font-size: 18px;
+           margin-bottom: 10px;
+               text-shadow: 1px 1px 2px #000;
+        }
+         ::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+          color:    #777;
+         }
+          :-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+            color:    #777;
+          }
+         ::-moz-placeholder { /* Mozilla Firefox 19+ */
+           color:    #777;
+          }
+        :-ms-input-placeholder { /* Internet Explorer 10-11 */
+          color:    #777;
+        }
+        ::-ms-input-placeholder { /* Microsoft Edge */
+           color:    #777;
+         }
+        ::placeholder { /* Most modern browsers support this now. */
+            color:    #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>King of the Diamonds</h1>
+        <div id="playerSetup">
+            <h2>Enter Player Names (Max 5):</h2>
+            <ul id="playerList">
+            </ul>
+            <button id="addPlayerBtn">Add Player</button>
+            <button id="startGameBtn" disabled>Start Game</button>
+        </div>
+        <div id="gameArea" style="display:none;">
+          <div id="playerPrompt"></div>
+            <div id="roundTimer"></div>
+           <div id="playerDisplay"></div>
+            <div id="numberGrid">
+                <!-- Number grid will be generated here -->
+            </div>
+           <div id="calculationDisplay" style="display: none;">
+                <div id="averageCalc"></div>
+                <div id="targetCalc"></div>
+                <div id="closestCalc"></div>
+            </div>
+             <div id="roundFeedback"></div>
+              <button id="nextRoundBtn" style="display: none;">Start Next Round</button>
+        </div>
+        <div id="gameOverScreen" style="display:none">
+            <h2>Game Over</h2>
+            <p id="gameOverMessage"></p>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const playerList = document.getElementById('playerList');
+        const addPlayerBtn = document.getElementById('addPlayerBtn');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const gameArea = document.getElementById('gameArea');
+        const playerDisplay = document.getElementById('playerDisplay');
+        const numberGrid = document.getElementById('numberGrid');
+        const roundFeedback = document.getElementById('roundFeedback');
+         const calculationDisplay = document.getElementById('calculationDisplay');
+          const roundTimerDisplay = document.getElementById('roundTimer');
+           const playerPrompt = document.getElementById('playerPrompt');
+          const nextRoundBtn = document.getElementById('nextRoundBtn');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const gameOverMessage = document.getElementById('gameOverMessage');
+
+        let players = [];
+        let currentPlayerIndex = 0;
+        let selectedNumbers = {};
+        let eliminatedCount = 0;
+         let roundTimeLeft = 180; // 3 minutes in seconds
+        let roundTimerInterval;
+
+        // Player Setup
+        addPlayerBtn.addEventListener('click', () => {
+           if (players.length < 5) {
+                const playerId = String(players.length + 1).padStart(2, '0');
+                 const listItem = document.createElement('li');
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = `Player ${playerId} Name`;
+                listItem.appendChild(input);
+                playerList.appendChild(listItem);
+
+                players.push({id:playerId, name: "", points: 0, eliminated: false, selectedNumber: null});
+
+               if (players.length === 5) {
+                     addPlayerBtn.disabled = true
+                }
+                 if (players.length > 1) {
+                     startGameBtn.disabled = false
+                 }
+            }
+        });
+
+       startGameBtn.addEventListener('click', () => {
+             const inputs = playerList.querySelectorAll('input');
+                inputs.forEach((input, index) => {
+                    players[index].name = input.value;
+                 });
+           document.getElementById('playerSetup').style.display = 'none';
+           gameArea.style.display = 'block';
+             updatePlayerDisplay();
+              startRoundTimer();
+            showPlayerPrompt();
+          numberGrid.classList.remove('hidden'); // Ensure the grid is visible at start
+
+        });
+
+        // Number Grid Generation
+      function generateNumberGrid() {
+           numberGrid.innerHTML = '';
+            for (let i = 0; i <= 100; i++) {
+                const cell = document.createElement('div');
+                 cell.classList.add('number-cell');
+                cell.textContent = i;
+                cell.addEventListener('click', () => selectNumber(i));
+                numberGrid.appendChild(cell);
+            }
+        }
+
+       function updatePlayerDisplay() {
+         playerDisplay.innerHTML = '';
+            players.forEach(player => {
+              const playerDiv = document.createElement('div');
+              playerDiv.classList.add('player-info');
+                if(player.eliminated) {
+                  playerDiv.classList.add('eliminated');
+                }
+              playerDiv.innerHTML = `
+                <span>${player.id} - ${player.name}:</span> Points: <span id="player-${player.id}-points">${player.points}</span>
+              `;
+              playerDisplay.appendChild(playerDiv);
+            });
+       }
+
+        function startRoundTimer() {
+           roundTimeLeft = 180; //reset
+            roundTimerInterval = setInterval(() => {
+                roundTimeLeft--;
+                roundTimerDisplay.textContent = `Time left: ${Math.floor(roundTimeLeft/60)}:${String(roundTimeLeft%60).padStart(2,"0")}`;
+
+                if(roundTimeLeft <= 0) {
+                  stopRoundTimer();
+                  if(Object.keys(selectedNumbers).length < players.filter(player=>!player.eliminated).length) {
+                      endRound()
+                  }
+                }
+            }, 1000);
+        }
+
+       function stopRoundTimer() {
+           clearInterval(roundTimerInterval);
+       }
+
+        function showPlayerPrompt() {
+          if(currentPlayerIndex < players.filter(player=>!player.eliminated).length) {
+            playerPrompt.textContent = `${players.filter(player=>!player.eliminated)[currentPlayerIndex].id} - ${players.filter(player=>!player.eliminated)[currentPlayerIndex].name}, please choose a number`;
+           generateNumberGrid();
+          numberGrid.classList.remove('hidden'); //make grid visible when start prompt
+           } else {
+            playerPrompt.textContent = ""; //no prompt if all selected
+           }
+        }
+
+
+       function selectNumber(number) {
+           const currentPlayer = players.filter(player=>!player.eliminated)[currentPlayerIndex];
+                const cell = numberGrid.querySelector(`.number-cell:nth-child(${number + 1})`);
+
+             if (cell && !cell.classList.contains('selected')) {
+                    cell.classList.add('selected');
+                   currentPlayer.selectedNumber = number;
+                    selectedNumbers[currentPlayer.id] = number;
+                   alert(`Number Saved: ${number}`)
+                    currentPlayerIndex++;
+                      if(currentPlayerIndex < players.filter(player=>!player.eliminated).length) {
+                        showPlayerPrompt();
+                    } else {
+                        stopRoundTimer()
+                      endRound();
+                       numberGrid.classList.add('hidden'); // Hide the grid once all numbers are picked
+                    }
+                 }
+       }
+
+
+     function endRound() {
+        let sum = 0;
+           let validNumbers = [];
+          let invalidNumbers = {};
+         let allSelected = true;
+
+            for (const player of players) {
+                if (!player.eliminated) {
+                  if (player.selectedNumber === null) {
+                    allSelected = false
+                  } else {
+                     validNumbers.push(player.selectedNumber);
+                      sum += player.selectedNumber;
+                  }
+
+                }
+            }
+
+           if (!allSelected) {
+               roundFeedback.textContent = "Not all players have chosen. Please continue!";
+                startRoundTimer();
+                 numberGrid.classList.remove('hidden'); // Show the grid again if not all numbers are picked
+               return;
+           }
+
+          const average = sum / validNumbers.length;
+           const targetNumber = Math.round(average * 0.8);
+
+           let closestPlayer = null;
+           let minDifference = Infinity;
+            roundFeedback.textContent = `Target: ${targetNumber}, Average: ${average.toFixed(2)}`;
+
+        // Rules check
+          // 4 players remaining:
+           if(players.filter(player => !player.eliminated).length === 4) {
+                const numberCounts = {};
+
+                   players.filter(player => !player.eliminated).forEach(player => {
+                    if(numberCounts[player.selectedNumber]) {
+                        numberCounts[player.selectedNumber].push(player.id);
+                    } else {
+                        numberCounts[player.selectedNumber] = [player.id];
+                    }
+                   });
+
+                   for(const number in numberCounts) {
+                       if(numberCounts[number].length > 1) {
+                           numberCounts[number].forEach(playerId => {
+                               invalidNumbers[playerId] = true;
+                           });
+                        }
+                   }
+            }
+
+        // 3 players remaining:
+            if(players.filter(player => !player.eliminated).length === 3) {
+                    players.filter(player => !player.eliminated).forEach(player => {
+                        if(player.selectedNumber === targetNumber) {
+                          closestPlayer = player;
+                        }
+                    });
+             }
+
+            // 2 players remaining:
+              if(players.filter(player => !player.eliminated).length === 2) {
+                    let zeroPlayer = null;
+                  let hundredPlayer = null;
+
+                players.filter(player => !player.eliminated).forEach(player => {
+                    if(player.selectedNumber === 0) {
+                        zeroPlayer = player;
+                    }
+                       if(player.selectedNumber === 100) {
+                        hundredPlayer = player;
+                    }
+                });
+
+                     if(zeroPlayer && hundredPlayer) {
+                        closestPlayer = hundredPlayer;
+                     }
+            }
+
+          if(closestPlayer === null) {
+
+               players.filter(player => !player.eliminated).forEach(player => {
+                    if(invalidNumbers[player.id]) {
+                        player.points--
+                        roundFeedback.innerHTML += `<br>Player ${player.id} chose an invalid number, and lose a point`
+                         updatePlayerDisplay();
+                    } else {
+
+                        const difference = Math.abs(player.selectedNumber - targetNumber);
+                        if (difference < minDifference) {
+                           minDifference = difference;
+                           closestPlayer = player;
+                       }
+                     }
+               });
+
+             }
+           let gameOver = false;
+
+            players.filter(player => !player.eliminated).forEach(player => {
+               if(player !== closestPlayer && !invalidNumbers[player.id]) {
+                    if(players.filter(player => !player.eliminated).length === 3 && closestPlayer.selectedNumber === targetNumber) {
+                       player.points -= 2;
+                        roundFeedback.innerHTML += `<br>Player ${player.id} loses 2 points because ${closestPlayer.id} hit the exact target!`
+                         updatePlayerDisplay();
+                    } else {
+                           player.points--;
+                         roundFeedback.innerHTML += `<br>Player ${player.id} loses a point`;
+                         updatePlayerDisplay();
+                    }
+                     if (player.points <= -10) {
+                       player.eliminated = true;
+                       eliminatedCount++;
+                         roundFeedback.innerHTML += `<br>Player ${player.id} is eliminated!`;
+                        updatePlayerDisplay();
+                    }
+
+                }
+            });
+
+            if (closestPlayer) {
+                 roundFeedback.innerHTML += `<br> Player ${closestPlayer.id} wins the round!`
+                 updatePlayerDisplay();
+            }
+
+            showCalculations(sum, validNumbers.length, average, targetNumber, closestPlayer);
+              if(players.filter(player => !player.eliminated).length === 1) {
+                   gameOverMessage.textContent = `Player ${players.filter(player => !player.eliminated)[0].id} has cleared the game!`;
+                 gameArea.style.display = 'none';
+                   gameOverScreen.style.display = 'block';
+                   gameOver = true;
+                }
+                 if(players.filter(player => !player.eliminated).length === 0 && !gameOver){
+                        gameOverMessage.textContent = "Nobody win, the game has ended";
+                         gameArea.style.display = 'none';
+                         gameOverScreen.style.display = 'block';
+                      gameOver = true
+                }
+
+
+               if(!gameOver) {
+                  nextRoundBtn.style.display = 'block'; // Show the button
+               }
+        }
+
+        async function showCalculations(sum, playerCount, average, targetNumber, closestPlayer) {
+            calculationDisplay.style.display = 'block';
+
+            const avgElement = document.getElementById('averageCalc');
+            const targetElement = document.getElementById('targetCalc');
+           const winnerElement = document.getElementById('closestCalc');
+
+          avgElement.innerText = '';
+          targetElement.innerText = '';
+           winnerElement.innerText = '';
+
+           await animateCalculation(avgElement, 'Calculating Average: Sum', sum, '/', playerCount, average.toFixed(2));
+            await animateCalculation(targetElement, 'Calculating Target: Average', average.toFixed(2), '*', '0.8', targetNumber);
+
+
+           winnerElement.innerText = `Closest: ${closestPlayer ? closestPlayer.id : "none"}`;
+
+        }
+
+
+       async function animateCalculation(element, textStart, num1, operator, num2, finalValue) {
+         let currentText = textStart + " ";
+            let interval = 150;
+           return new Promise(resolve => {
+             let i = 0;
+            let timer = setInterval(() => {
+              if(i < String(num1).length) {
+                 currentText += String(num1)[i]
+                element.innerText = currentText;
+                 i++;
+              } else if(i < (String(num1).length+1)) {
+                 currentText += " " + operator + " "
+                 element.innerText = currentText;
+                  i++;
+              } else if (i < (String(num1).length+String(num2).length+2)){
+                    currentText += String(num2)[i - (String(num1).length+2)]
+                     element.innerText = currentText;
+                  i++;
+             } else if (i < (String(num1).length+String(num2).length+3)){
+                  currentText += " = " + String(finalValue);
+                   element.innerText = currentText;
+                i++;
+              }  else {
+                clearInterval(timer);
+                resolve();
+                }
+            }, interval);
+        });
+        }
+
+
+        function hideCalculations() {
+            calculationDisplay.style.display = 'none';
+           roundFeedback.textContent = ''; // Reset feedback for the next round
+        }
+
+        nextRoundBtn.addEventListener('click', () => {
+              nextRoundBtn.style.display = 'none'; //hide the button
+                 hideCalculations();
+                 players.forEach(player => {
+                     player.selectedNumber = null;
+                 });
+                  selectedNumbers = {};
+                 currentPlayerIndex = 0;
+          if(players.filter(player => !player.eliminated).length > 1) {
+               startRoundTimer();
+              showPlayerPrompt();
+               numberGrid.classList.remove('hidden'); //make grid visible when start next round
+
+            }
+
+        });
+    });
+    </script>
+</body>
+</html>
